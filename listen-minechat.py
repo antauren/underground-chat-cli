@@ -42,8 +42,8 @@ async def read_chat(host, port, filename):
             message = data.decode()
             print(message.strip())
 
-            message = handle_text(message)
-            await write_file(filename, message, 'a')
+            message_with_datetime = handle_text(message)
+            await write_file(filename, message_with_datetime, 'a')
 
             if error_count > 0:
                 message = handle_text('Установлено соединение.')
