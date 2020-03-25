@@ -22,7 +22,7 @@ def handle_text(text):
 
 
 async def write_file(path, text, mode='w'):
-    async with aiofiles.open(path, mode=mode) as fd:
+    async with aiofiles.open(path, mode=mode, encoding='utf-8') as fd:
         await fd.write(text)
 
 
