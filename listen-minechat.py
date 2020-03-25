@@ -5,49 +5,22 @@ import asyncio
 
 from heandler import handle_text
 from utils import write_file
+from connection import open_asyncio_connection
+
 from config import HOST, READ_PORT, HISTORY_FILE
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 async def read_chat(host, port, filename):
-    reader, writer = await asyncio.open_connection(host, port)
+    async with open_asyncio_connection(host, port, filename) as rw_descriptor:
+        reader, writer = rw_descriptor
 
-    await write_file(filename, handle_text('Установлено соединение.'))
-
-    delay = 0
-    error_count = 0
-
-    while True:
-        try:
+        while True:
             data = await reader.readline()
 
             message = data.decode()
             print(message.strip())
 
             await write_file(filename, handle_text(message))
-
-            if error_count > 0:
-                await write_file(filename, handle_text('Установлено соединение.'))
-
-            error_count = 0
-            delay = 0
-
-
-        except asyncio.CancelledError:
-            error_count += 1
-
-            message = handle_text('Нет соединения. Повторная попытка.')
-
-            if error_count > 2:
-                delay = 3
-                message = handle_text('Нет соединения. Повторная попытка через 3 сек.')
-
-            await write_file(filename, message)
-
-            await asyncio.sleep(delay)
 
 
 def parse_args(host, port, history):

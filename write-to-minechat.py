@@ -4,6 +4,7 @@ from dotenv import dotenv_values
 import asyncio
 import json
 
+from connection import open_asyncio_connection
 from config import HOST, WRITE_PORT
 
 import logging
@@ -12,20 +13,18 @@ logger = logging.getLogger(__name__)
 
 
 async def write_to_chat(host, port, account_hash, message):
-    reader, writer = await asyncio.open_connection(host, port)
+    async with open_asyncio_connection(host, port) as rw_descriptor:
+        reader, writer = rw_descriptor
 
-    data = await reader.readline()
-    logger.debug(data.decode())
+        data = await reader.readline()
+        logger.debug(data.decode())
 
-    await authorise(reader, writer, account_hash)
+        await authorise(reader, writer, account_hash)
 
-    data = await reader.readline()
-    logger.debug(data.decode())
+        data = await reader.readline()
+        logger.debug(data.decode())
 
-    await submit_message(writer, message)
-
-    logger.debug('Close the connection')
-    writer.close()
+        await submit_message(writer, message)
 
 
 async def authorise(reader, writer, account_hash):
@@ -40,7 +39,6 @@ async def authorise(reader, writer, account_hash):
     if not account_dict:
         error_message = 'Неизвестный токен. Проверьте его или зарегистрируйте заново.'
         logger.debug(error_message)
-        writer.close()
 
         assert False, error_message
 
@@ -55,27 +53,26 @@ async def submit_message(writer, message):
 
 
 async def register(host, port, nickname) -> dict:
-    reader, writer = await asyncio.open_connection(host, port)
+    async with open_asyncio_connection(host, port) as rw_descriptor:
+        reader, writer = rw_descriptor
 
-    data = await reader.readline()
-    logger.debug(data.decode())
+        data = await reader.readline()
+        logger.debug(data.decode())
 
-    writer.write(b'\n')
-    await writer.drain()
+        writer.write(b'\n')
+        await writer.drain()
 
-    data = await reader.readline()
-    logger.debug(data.decode())
+        data = await reader.readline()
+        logger.debug(data.decode())
 
-    nickname = sanitize(nickname)
-    writer.writelines([nickname.encode(), b'\n'])
-    await writer.drain()
+        nickname = sanitize(nickname)
+        writer.writelines([nickname.encode(), b'\n'])
+        await writer.drain()
 
-    data = await reader.readline()
-    logger.debug(data.decode())
+        data = await reader.readline()
+        logger.debug(data.decode())
 
-    writer.close()
-
-    return json.loads(data)
+        return json.loads(data)
 
 
 def sanitize(text: str) -> str:
