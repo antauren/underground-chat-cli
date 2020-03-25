@@ -5,13 +5,20 @@ import datetime
 
 import asyncio
 
-from heandler import handle_text
 from utils import write_file
 from config import HOST, READ_PORT, HISTORY_FILE
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_current_time_str():
+    return datetime.datetime.now().strftime('[%d.%m.%y %H:%M:%S]')
+
+
+def handle_text(text):
+    return '{} {}\n'.format(get_current_time_str(), text)
 
 
 async def read_chat(host, port, filename):
