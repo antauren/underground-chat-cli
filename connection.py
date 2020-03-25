@@ -40,6 +40,8 @@ async def open_asyncio_connection(host, port, filename=None):
 
         await asyncio.sleep(delay)
 
+        raise
+
     except ConnectionResetError:
         if filename is not None:
             await write_file(filename, handle_text('Удаленный хост принудительно разорвал существующее подключение.'))
