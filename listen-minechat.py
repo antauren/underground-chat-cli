@@ -4,8 +4,8 @@ from dotenv import dotenv_values
 import datetime
 
 import asyncio
-import aiofiles
 
+from utils import write_file
 from config import HOST, READ_PORT, HISTORY_FILE
 
 import logging
@@ -21,16 +21,10 @@ def handle_text(text):
     return '{} {}\n'.format(get_current_time_str(), text)
 
 
-async def write_file(path, text, mode='w'):
-    async with aiofiles.open(path, mode=mode, encoding='utf-8') as fd:
-        await fd.write(text)
-
-
 async def read_chat(host, port, filename):
     reader, writer = await asyncio.open_connection(host, port)
 
-    message = handle_text('Установлено соединение.')
-    await write_file(filename, message, 'a')
+    await write_file(filename, handle_text('Установлено соединение.'))
 
     delay = 0
     error_count = 0
@@ -42,12 +36,10 @@ async def read_chat(host, port, filename):
             message = data.decode()
             print(message.strip())
 
-            message_with_datetime = handle_text(message)
-            await write_file(filename, message_with_datetime, 'a')
+            await write_file(filename, handle_text(message))
 
             if error_count > 0:
-                message = handle_text('Установлено соединение.')
-                await write_file(filename, message, 'a')
+                await write_file(filename, handle_text('Установлено соединение.'))
 
             error_count = 0
             delay = 0
@@ -62,7 +54,7 @@ async def read_chat(host, port, filename):
                 delay = 3
                 message = handle_text('Нет соединения. Повторная попытка через 3 сек.')
 
-            await write_file(filename, message, 'a')
+            await write_file(filename, message)
 
             await asyncio.sleep(delay)
 
